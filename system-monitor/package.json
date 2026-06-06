@@ -1,0 +1,9 @@
+{
+  "name": "system-monitor",
+  "version": "1.0.0",
+  "description": "OpsGuardian host metrics monitor",
+  "main": "monitor.js",
+  "dependencies": {}
+}
+
+

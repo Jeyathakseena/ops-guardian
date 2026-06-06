@@ -1,0 +1,84 @@
+services:
+
+  # ── 1. Database ─────────────────────────────────────────────────────────────
+  ops-database:
+    image: mongo:7.0
+    container_name: ops-database
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ops-net
+    restart: unless-stopped
+
+  # ── 2. LLM (Ollama + qwen:4b) ───────────────────────────────────────────────
+  ops-llm:
+    build:
+      context: ./ops-llm
+    container_name: ops-llm
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - ops-net
+    restart: unless-stopped
+
+  # ── 3. API Backend ───────────────────────────────────────────────────────────
+  # pid: "host" + privileged lets this container run kill -9 on real host PIDs
+  ops-backend:
+    build:
+      context: ./ops-backend
+    container_name: ops-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGO_URL=mongodb://ops-database:27017/opsguardian
+      - PORT=3001
+    depends_on:
+      - ops-database
+    networks:
+      - ops-net
+    pid: "host"
+    privileged: true
+    restart: unless-stopped
+
+  # ── 4. System Monitor ────────────────────────────────────────────────────────
+  # pid: "host" lets this container read true host /proc and see all host PIDs
+  system-monitor:
+    build:
+      context: ./system-monitor
+    container_name: system-monitor
+    environment:
+      - BACKEND_URL=http://ops-backend:3001
+      - OLLAMA_URL=http://ops-llm:11434
+    depends_on:
+      - ops-backend
+      - ops-llm
+    networks:
+      - ops-net
+    pid: "host"
+    privileged: true
+    restart: unless-stopped
+
+  # ── 5. React Frontend ────────────────────────────────────────────────────────
+  ops-frontend:
+    build:
+      context: ./ops-frontend
+    container_name: ops-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - ops-backend
+    networks:
+      - ops-net
+    restart: unless-stopped
+
+networks:
+  ops-net:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  ollama_data:

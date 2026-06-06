@@ -1,0 +1,12 @@
+# Dependency folders
+node_modules/
+dist/
+.cache/
+
+# Local environment configuration files
+.env
+.env.local
+
+# Docker logs and data files
+*.log
+.docker/
