@@ -7,7 +7,7 @@ const CREDS = { user: 'admin', pass: 'admin123' };
 // ── Metric Bar ──────────────────────────────────────────────────────────────
 
 function MetricBar({ label, value }) {
-  const color = value > 90 ? '#ef4444' : value > 70 ? '#f59e0b' : '#22c55e';
+  const color = value > 70 ? '#ef4444' : value > 50 ? '#f59e0b' : '#22c55e';
   return (
     <div className="metric-card">
       <div className="metric-label">{label}</div>
@@ -27,7 +27,7 @@ function IncidentBanner({ inc, onKill }) {
     <div className={`banner ${resolved ? 'banner-green' : 'banner-red'}`}>
       <div className="banner-top">
         <span className="banner-status">
-          {resolved ? '✅ RESOLVED' : '🚨 ACTIVE ALERT'}
+          {resolved ? 'RESOLVED' : ' ACTIVE ALERT'}
         </span>
         <span className="banner-time">
           {new Date(inc.createdAt).toLocaleTimeString()}
@@ -98,7 +98,7 @@ function Dashboard() {
       <section>
         <h2 className="section-title">Track Incidents</h2>
         {incidents.length === 0
-          ? <p className="empty">✅ All systems normal. No incidents detected.</p>
+          ? <p className="empty">All systems normal. No incidents detected.</p>
           : incidents.map(inc => (
               <IncidentBanner key={inc._id} inc={inc} onKill={handleKill} />
             ))
@@ -128,7 +128,7 @@ function Login({ onLogin }) {
     <div className="login-wrap">
       <div className="login-box">
         <h1>🛡️ Ops-Guardian</h1>
-        <p className="subtitle">Infrastructure Monitoring Platform</p>
+        <p className="subtitle">AI-Driven Host System Health Monitoring Platform</p>
         <form onSubmit={submit}>
           <input
             value={u}

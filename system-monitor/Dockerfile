@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-# procps gives us the GNU version of ps with --sort and --no-headers flags
+
 RUN apk add --no-cache procps
 
 WORKDIR /app
