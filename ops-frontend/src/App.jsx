@@ -39,7 +39,7 @@ function IncidentBanner({ inc, onKill }) {
       <p className="banner-reason">{inc.reasoning}</p>
       {!resolved && (
         <button className="kill-btn" onClick={() => onKill(inc._id, inc.targetPid)}>
-          ☠ Kill Process &nbsp;(PID {inc.targetPid})
+         Kill Process &nbsp;(PID {inc.targetPid})
         </button>
       )}
     </div>
