@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 
 // Backend URL — the browser always reaches it via the mapped host port
-const API   = 'http://localhost:3001';
-const CREDS = { user: 'admin', pass: 'admin123' };
+const API   = import.meta.env.VITE_API_URL;
+const CREDS = { 
+  user: import.meta.env.VITE_ADMIN_USER, 
+  pass: import.meta.env.VITE_ADMIN_PASS 
+};
+
 
 // ── Metric Bar ──────────────────────────────────────────────────────────────
 

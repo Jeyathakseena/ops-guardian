@@ -2,7 +2,7 @@ services:
 
   # ── 1. Database ─────────────────────────────────────────────────────────────
   ops-database:
-    image: mongo:7.0
+    image: mongo:latest
     container_name: ops-database
     ports:
       - "27017:27017"
@@ -33,9 +33,8 @@ services:
     container_name: ops-backend
     ports:
       - "3001:3001"
-    environment:
-      - MONGO_URL=mongodb://ops-database:27017/opsguardian
-      - PORT=3001
+    env_file:
+      - .env
     depends_on:
       - ops-database
     networks:
@@ -50,9 +49,8 @@ services:
     build:
       context: ./system-monitor
     container_name: system-monitor
-    environment:
-      - BACKEND_URL=http://ops-backend:3001
-      - OLLAMA_URL=http://ops-llm:11434
+    env_file:
+      - .env
     depends_on:
       - ops-backend
       - ops-llm

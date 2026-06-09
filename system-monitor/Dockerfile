@@ -1,5 +1,4 @@
-FROM node:20-alpine
-
+FROM node:alpine
 
 RUN apk add --no-cache procps
 

@@ -6,8 +6,8 @@ const cors         = require('cors');
 const { execSync } = require('child_process');
 
 const app   = express();
-const PORT  = process.env.PORT      || 3001;
-const MONGO = process.env.MONGO_URL || 'mongodb://ops-database:27017/opsguardian';
+const PORT  = process.env.PORT;     
+const MONGO = process.env.MONGO_URL;
 
 app.use(cors());
 app.use(express.json());

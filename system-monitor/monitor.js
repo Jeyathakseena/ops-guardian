@@ -3,8 +3,8 @@
 const fs             = require('fs');
 const { execSync }   = require('child_process');
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://ops-backend:3001';
-const OLLAMA_URL  = process.env.OLLAMA_URL  || 'http://ops-llm:11434';
+const BACKEND_URL = process.env.BACKEND_URL;
+const OLLAMA_URL  = process.env.OLLAMA_URL;
 const THRESHOLD   = 30;          // percent
 const COOLDOWN_MS = 60_000;      // 60-second lock after an AI trigger
 const INTERVAL_MS = 5_000;       // polling interval
