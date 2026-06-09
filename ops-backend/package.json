@@ -4,8 +4,8 @@
   "description": "OpsGuardian Express API + SSE server",
   "main": "server.js",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "mongoose": "^8.0.3"
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mongoose": "^9.6.3"
   }
 }
