@@ -1,5 +1,6 @@
 'use strict';
 
+require('dotenv').config({ path: '../.env' });
 const fs             = require('fs');
 const { execSync }   = require('child_process');
 

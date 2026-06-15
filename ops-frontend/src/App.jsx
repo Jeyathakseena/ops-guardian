@@ -124,7 +124,7 @@ function Login({ onLogin }) {
     if (u === CREDS.user && p === CREDS.pass) {
       onLogin();
     } else {
-      setErr('Invalid credentials. Hint: admin / admin123');
+      setErr('Invalid credentials.');
     }
   };
 

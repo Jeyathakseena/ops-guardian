@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "OpsGuardian host metrics monitor",
   "main": "monitor.js",
-  "dependencies": {}
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
 }
-
-

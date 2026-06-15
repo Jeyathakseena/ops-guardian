@@ -10,3 +10,5 @@ dist/
 # Docker logs and data files
 *.log
 .docker/
+
+repomix-output.xml
