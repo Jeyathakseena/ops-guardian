@@ -4,6 +4,5 @@
   "description": "OpsGuardian host metrics monitor",
   "main": "monitor.js",
   "dependencies": {
-    "dotenv": "^17.4.2"
   }
 }

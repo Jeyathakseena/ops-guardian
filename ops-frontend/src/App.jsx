@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// Backend URL — the browser always reaches it via the mapped host port
-const API   = import.meta.env.VITE_API_URL;
-const CREDS = { 
-  user: import.meta.env.VITE_ADMIN_USER, 
-  pass: import.meta.env.VITE_ADMIN_PASS 
-};
-
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 // ── Metric Bar ──────────────────────────────────────────────────────────────
 
@@ -52,16 +46,14 @@ function IncidentBanner({ inc, onKill }) {
 
 // ── Dashboard ───────────────────────────────────────────────────────────────
 
-function Dashboard() {
-  const [metrics,   setMetrics]   = useState({ cpu: 0, memory: 0, disk: 0 });
+function Dashboard({ onLogout }) {
+  const [metrics, setMetrics] = useState({ cpu: 0, memory: 0, disk: 0 });
   const [incidents, setIncidents] = useState([]);
 
   useEffect(() => {
-    // Load initial state from the API
     fetch(`${API}/api/metrics`).then(r => r.json()).then(setMetrics).catch(() => {});
     fetch(`${API}/api/incidents`).then(r => r.json()).then(setIncidents).catch(() => {});
 
-    // SSE stream for real-time updates (stays open)
     const es = new EventSource(`${API}/api/events`);
     es.onmessage = ({ data }) => {
       const msg = JSON.parse(data);
@@ -86,8 +78,17 @@ function Dashboard() {
   return (
     <div className="page">
       <header className="header">
-        <h1>🛡️ Ops-Guardian</h1>
-        <span className="live-badge">● LIVE</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h1>🛡️ Ops-Guardian</h1>
+          <span className="live-badge">● LIVE</span>
+        </div>
+        <button 
+          className="kill-btn" 
+          onClick={onLogout} 
+          style={{ background: '#334155', color: '#e2e8f0' }}
+        >
+          Logout
+        </button>
       </header>
 
       <section>
@@ -112,19 +113,30 @@ function Dashboard() {
   );
 }
 
-// ── Login ───────────────────────────────────────────────────────────────────
+// ── Auth Form (Login / Signup) ──────────────────────────────────────────────
 
-function Login({ onLogin }) {
-  const [u,   setU]   = useState('');
-  const [p,   setP]   = useState('');
+function AuthForm({ view, onSuccess, onSwitch }) {
+  const [u, setU] = useState('');
+  const [p, setP] = useState('');
   const [err, setErr] = useState('');
 
-  const submit = (e) => {
+  const isLogin = view === 'login';
+
+  const submit = async (e) => {
     e.preventDefault();
-    if (u === CREDS.user && p === CREDS.pass) {
-      onLogin();
-    } else {
-      setErr('Invalid credentials.');
+    setErr('');
+    try {
+      const res = await fetch(`${API}/api/${view}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Authentication failed');
+      onSuccess(u);
+    } catch (error) {
+      setErr(error.message);
     }
   };
 
@@ -132,12 +144,13 @@ function Login({ onLogin }) {
     <div className="login-wrap">
       <div className="login-box">
         <h1>🛡️ Ops-Guardian</h1>
-        <p className="subtitle">AI-Driven Host System Health Monitoring Platform</p>
+        <p className="subtitle">{isLogin ? 'Login to Dashboard' : 'Create an Account'}</p>
         <form onSubmit={submit}>
           <input
             value={u}
             onChange={e => setU(e.target.value)}
             placeholder="Username"
+            required
             autoComplete="username"
           />
           <input
@@ -145,11 +158,21 @@ function Login({ onLogin }) {
             value={p}
             onChange={e => setP(e.target.value)}
             placeholder="Password"
-            autoComplete="current-password"
+            required
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
           />
           {err && <p className="err">{err}</p>}
-          <button type="submit">Login</button>
+          <button type="submit">{isLogin ? 'Login' : 'Sign Up'}</button>
         </form>
+        <p 
+          style={{ marginTop: '1.25rem', fontSize: '0.88rem', cursor: 'pointer', color: '#64748b' }} 
+          onClick={onSwitch}
+        >
+          {isLogin ? "Need an account? " : "Already have an account? "}
+          <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>
+            {isLogin ? "Sign up" : "Login"}
+          </span>
+        </p>
       </div>
     </div>
   );
@@ -158,6 +181,29 @@ function Login({ onLogin }) {
 // ── Root ────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [auth, setAuth] = useState(false);
-  return auth ? <Dashboard /> : <Login onLogin={() => setAuth(true)} />;
+  const [user, setUser] = useState(() => localStorage.getItem('ops_user'));
+  const [view, setView] = useState('login'); 
+
+  const handleAuth = (username) => {
+    localStorage.setItem('ops_user', username);
+    setUser(username);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('ops_user');
+    setUser(null);
+  };
+
+  if (user) {
+    return <Dashboard onLogout={handleLogout} />;
+  }
+
+  return (
+    <AuthForm 
+      view={view} 
+      onSuccess={handleAuth} 
+      onSwitch={() => setView(view === 'login' ? 'signup' : 'login')} 
+    />
+  );
 }
+
