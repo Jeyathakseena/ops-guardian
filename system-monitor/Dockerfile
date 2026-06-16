@@ -5,6 +5,6 @@ RUN apk add --no-cache procps
 WORKDIR /app
 
 COPY package.json .
-COPY monitor.js .
+COPY . .
 
-CMD ["node", "monitor.js"]
+CMD ["node", "index.js"]

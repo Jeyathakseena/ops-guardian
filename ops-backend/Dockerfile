@@ -5,6 +5,6 @@ WORKDIR /app
 COPY package.json .
 RUN npm install
 
-COPY server.js .
+COPY . .
 
 CMD ["node", "server.js"]

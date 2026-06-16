@@ -65,6 +65,8 @@ services:
     build:
       context: ./ops-frontend
     container_name: ops-frontend
+    env_file:
+      - .env
     ports:
       - "5173:80"
     depends_on:
