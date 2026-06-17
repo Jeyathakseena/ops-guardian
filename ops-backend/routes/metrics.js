@@ -1,4 +1,3 @@
-// ops-backend/routes/metrics.js (CORRECTED)
 const express = require('express');
 const router = express.Router();
 const metricsController = require('../controllers/metricsController');
