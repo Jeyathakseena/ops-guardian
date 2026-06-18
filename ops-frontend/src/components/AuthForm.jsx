@@ -12,7 +12,8 @@ export function AuthForm({ view, onSuccess, onSwitch }) {
     e.preventDefault();
     setErr('');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/${view}`, {
+      const apiUrl = view === 'login' ? 'login' : 'signup';
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/${apiUrl}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: u, password: p })

@@ -3,9 +3,10 @@ const incidentQuery = require('../queries/incidentQuery');
 const broadcastService = require('../services/broadcastService');
 const { execSync } = require('child_process');
 
-exports.killProcess = async (req, res, next) => {
-  const { pid, incidentId } = req.body;
-  if (!pid || !incidentId) return res.status(400).json({ error: 'pid and incidentId are required' });
+exports.killProcess = async ({ pid, incidentId }) => {
+  if (!pid || !incidentId) {
+    throw new Error('pid and incidentId are required');
+  }
 
   try {
     try {
@@ -13,13 +14,13 @@ exports.killProcess = async (req, res, next) => {
     } catch (e) {
       console.log(`[Backend] Process ${pid} might already be terminated.`);
     }
-    
+
     await incidentQuery.updateResolved(incidentId);
     const latest = await incidentQuery.findLatest(5);
     broadcastService.broadcast({ type: 'incident', data: latest });
 
-    res.json({ ok: true, message: `PID ${pid} handled successfully` });
+    return { ok: true, message: `PID ${pid} handled successfully` };
   } catch (err) {
-    next(err);
+    throw err;
   }
 };

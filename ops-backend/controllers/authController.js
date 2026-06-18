@@ -2,32 +2,22 @@
 const userQuery = require('../queries/userQuery');
 const authService = require('../services/authService');
 
-exports.signup = async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-    const exists = await userQuery.findOneByUsername(username);
-    if (exists) return res.status(400).json({ error: 'Username already taken' });
+exports.signup = async (username, password) => {
+  const exists = await userQuery.findOneByUsername(username);
+  if (exists) throw new Error('Username already taken');
 
-    const hashedPassword = await authService.hashPassword(password);
-    await userQuery.create({ username, password: hashedPassword });
+  const hashedPassword = await authService.hashPassword(password);
+  await userQuery.create({ username, password: hashedPassword });
 
-    res.json({ ok: true, username });
-  } catch (err) {
-    next(err);
-  }
+  return { ok: true, username };
 };
 
-exports.login = async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-    const user = await userQuery.findOneByUsername(username);
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+exports.login = async (username, password) => {
+  const user = await userQuery.findOneByUsername(username);
+  if (!user) throw new Error('Invalid credentials');
 
-    const isMatch = await authService.comparePassword(password, user.password);
-    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
+  const isMatch = await authService.comparePassword(password, user.password);
+  if (!isMatch) throw new Error('Invalid credentials');
 
-    res.json({ ok: true, username: user.username });
-  } catch (err) {
-    next(err);
-  }
+  return { ok: true, username: user.username };
 };

@@ -1,6 +1,6 @@
 // system-monitor/services/backend.js
-async function post(path, body, BACKEND_URL) {
-  const res = await fetch(`${BACKEND_URL}${path}`, {
+async function post(fullUrl, body) {
+  const res = await fetch(fullUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

@@ -14,7 +14,7 @@ async function tick(config) {
   console.log(`[Monitor] CPU: ${cpu}%  MEM: ${memory}%  DISK: ${disk}%`);
 
   // Always send live metrics to the backend (for the dashboard bars)
-  await post('/api/metrics', { cpu, memory, disk }, config.BACKEND_URL)
+  await post(config.BACKEND_URL + '/api/metrics/metrics', { cpu, memory, disk })
     .catch(e => console.error('[Metrics Push Error]', e.message));
 
   const now = Date.now();
@@ -27,12 +27,13 @@ async function tick(config) {
       const ai = await callOllama({ cpu, memory, disk }, proc, config.OLLAMA_URL);
       console.log(`[AI] Target PID: ${ai.targetPid} | Reason: ${ai.reasoning}`);
 
-      await post('/api/incident', {
-        cpu, memory, disk,
-        targetPid: ai.targetPid,
-        reasoning: ai.reasoning,
-        processName: proc.cmd
-      }, config.BACKEND_URL);
+      await post(config.BACKEND_URL + '/api/incidents/incident', 
+        {
+          cpu, memory, disk,
+          targetPid: ai.targetPid,
+          reasoning: ai.reasoning,
+          processName: proc.cmd
+        });
     } catch (err) {
       console.error('[AI Error]', err.message);
       config.cooldownUntil = now + 10_000;  // shorter retry window on failure

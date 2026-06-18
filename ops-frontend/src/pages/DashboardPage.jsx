@@ -3,17 +3,17 @@ import { useState, useEffect } from 'react';
 import { MetricBar } from '../components/MetricBar';
 import { IncidentBanner } from '../components/IncidentBanner';
 
-const API = import.meta.env.VITE_API_URL;
+const API = `${import.meta.env.VITE_API_URL}`;
 
 export function DashboardPage({ onLogout }) {
   const [metrics, setMetrics] = useState({ cpu: 0, memory: 0, disk: 0 });
   const [incidents, setIncidents] = useState([]);
 
   useEffect(() => {
-    fetch(`${API}/api/metrics`).then(r => r.json()).then(setMetrics).catch(() => {});
-    fetch(`${API}/api/incidents`).then(r => r.json()).then(setIncidents).catch(() => {});
+    fetch(`${API}/api/metrics/metrics`).then(r => r.json()).then(setMetrics).catch(() => {});
+    fetch(`${API}/api/incidents/incidents`).then(r => r.json()).then(setIncidents).catch(() => {});
 
-    const es = new EventSource(`${API}/api/events`);
+    const es = new EventSource(`${API}/api/metrics/events`);
     es.onmessage = ({ data }) => {
       const msg = JSON.parse(data);
       if (msg.type === 'metrics')  setMetrics(msg.data);
@@ -23,7 +23,7 @@ export function DashboardPage({ onLogout }) {
   }, []);
 
   const handleKill = async (incidentId, pid) => {
-    const res = await fetch(`${API}/api/kill-process`, {
+    const res = await fetch(`${API}/api/process/kill-process`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pid, incidentId })

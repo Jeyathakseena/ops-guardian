@@ -14,15 +14,18 @@ app.use(cors());
 app.use(express.json());
 
 // Register routes
-app.use('/api', authRoutes);
-app.use('/api', metricsRoutes);
-app.use('/api', incidentsRoutes);
-app.use('/api', processesRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/metrics', metricsRoutes);
+app.use('/api/incidents', incidentsRoutes);
+app.use('/api/process', processesRoutes);
 
 
 
 app.use((err, req, res, next) => {
-    res.status(500).json({ error: 'Something went wrong!' });
+  console.error('[Backend Error]', err.message);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error'
+  });
 });
 
 module.exports = app;

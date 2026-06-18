@@ -1,14 +1,16 @@
 // ops-backend/controllers/metricsController.js
 const broadcastService = require('../services/broadcastService');
 
-exports.getMetrics = (_, res) => {
-  res.json(broadcastService.getLiveMetrics());
+exports.getMetrics = () => {
+  return broadcastService.getLiveMetrics();
 };
 
-exports.postMetrics = (req, res) => {
-  broadcastService.setLiveMetrics(req.body);
-  broadcastService.broadcast({ type: 'metrics', data: req.body });
-  res.json({ ok: true });
+exports.postMetrics = async (metrics) => {
+  broadcastService.setLiveMetrics(metrics);
+  broadcastService.broadcast({ type: 'metrics', data: metrics });
+  return { ok: true };
 };
 
-exports.getHealth = (_, res) => res.json({ status: 'ok' });
+exports.getHealth = () => {
+  return { status: 'ok' };
+};

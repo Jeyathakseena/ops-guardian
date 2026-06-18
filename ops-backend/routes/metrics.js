@@ -3,9 +3,24 @@ const router = express.Router();
 const metricsController = require('../controllers/metricsController');
 const broadcastService = require('../services/broadcastService');
 
-router.get('/health', metricsController.getHealth);
-router.get('/metrics', metricsController.getMetrics);
-router.post('/metrics', metricsController.postMetrics);
+router.get('/health', (req, res) => {
+  const result = metricsController.getHealth();
+  res.json(result);
+});
+
+router.get('/metrics', (req, res) => {
+  const result = metricsController.getMetrics();
+  res.json(result);
+});
+
+router.post('/metrics', async (req, res) => {
+  try {
+    const result = await metricsController.postMetrics(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // SSE endpoint
 router.get('/events', (req, res) => {
