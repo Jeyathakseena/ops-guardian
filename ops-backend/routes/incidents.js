@@ -2,7 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const incidentsController = require('../controllers/incidentsController');
+const { authenticate } = require('../middleware/authMiddleware');
 
+// Allowed without token so the system-monitor container can report incidents
 router.post('/incident', async (req, res) => {
   try {
     const result = await incidentsController.postIncident(req.body);
@@ -12,7 +14,8 @@ router.post('/incident', async (req, res) => {
   }
 });
 
-router.get('/incidents', async (req, res) => {
+// Protected: Only authenticated users can view incidents on the dashboard
+router.get('/incidents', authenticate, async (req, res) => {
   try {
     const result = await incidentsController.getIncidents();
     res.json(result);

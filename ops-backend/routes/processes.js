@@ -2,8 +2,10 @@
 const express = require('express');
 const router = express.Router();
 const processesController = require('../controllers/processesController');
+const { authenticate } = require('../middleware/authMiddleware');
 
-router.post('/kill-process', async (req, res) => {
+// Protected: Only authenticated users can trigger process remediation
+router.post('/kill-process', authenticate, async (req, res) => {
   try {
     const result = await processesController.killProcess(req.body);
     res.json(result);
@@ -11,6 +13,5 @@ router.post('/kill-process', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 module.exports = router;

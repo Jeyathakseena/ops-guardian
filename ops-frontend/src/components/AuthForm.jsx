@@ -1,5 +1,6 @@
-// ops-frontend/src/components/AuthForm.jsx
 import { useState } from 'react';
+// 1. IMPORT your api helper functions here
+import { login, signup } from '../services/api'; 
 
 export function AuthForm({ view, onSuccess, onSwitch }) {
   const [u, setU] = useState('');
@@ -12,18 +13,28 @@ export function AuthForm({ view, onSuccess, onSwitch }) {
     e.preventDefault();
     setErr('');
     try {
-      const apiUrl = view === 'login' ? 'login' : 'signup';
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/${apiUrl}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p })
-      });
-      const data = await res.json();
+      let data;
       
-      if (!res.ok) throw new Error(data.error || 'Authentication failed');
+      // 2. USE the clean functions from api.js instead of writing raw fetch blocks
+      if (isLogin) {
+        data = await login(u, p);
+      } else {
+        data = await signup(u, p);
+      }
+
+      // 3. Handle errors if the server returned an error flag
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
+
+      // 4. Save token to localStorage if returned
+      if (data && data.token) {
+        localStorage.setItem('ops_token', data.token);
+      }
+
       onSuccess(u);
     } catch (error) {
-      setErr(error.message);
+      setErr(error.message || 'Authentication failed');
     }
   };
 
@@ -51,13 +62,13 @@ export function AuthForm({ view, onSuccess, onSwitch }) {
           {err && <p className="err">{err}</p>}
           <button type="submit">{isLogin ? 'Login' : 'Sign Up'}</button>
         </form>
-        <p 
-          style={{ marginTop: '1.25rem', fontSize: '0.88rem', cursor: 'pointer', color: '#64748b' }} 
+        <p
+          style={{ marginTop: '1.25rem', fontSize: '0.88rem', cursor: 'pointer', color: '#64748b' }}
           onClick={onSwitch}
         >
-          {isLogin ? "Need an account? " : "Already have an account? "}
+          {isLogin ? 'Need an account? ' : 'Already have an account? '}
           <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>
-            {isLogin ? "Sign up" : "Login"}
+            {isLogin ? 'Sign up' : 'Login'}
           </span>
         </p>
       </div>

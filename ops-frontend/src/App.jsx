@@ -1,4 +1,3 @@
-// ops-frontend/src/App.jsx (CORRECTED)
 import { useState } from 'react';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -13,6 +12,7 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('ops_user');
+    localStorage.removeItem('ops_token');
     setUser(null);
   };
 
