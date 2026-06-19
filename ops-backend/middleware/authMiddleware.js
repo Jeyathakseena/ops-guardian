@@ -10,7 +10,7 @@ exports.authenticate = (req, res, next) => {
   try {
     const decoded = jwtService.verifyToken(token);
     req.user = decoded; // Attach decoded user to req
-    next(); // Continue to controller
+    next(); 
   } catch (error) {
     return res.status(401).json({ error: 'Invalid token' });
   }

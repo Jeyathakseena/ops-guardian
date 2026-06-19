@@ -1,10 +1,10 @@
 import { useState } from 'react';
-// 1. IMPORT your api helper functions here
-import { login, signup } from '../services/api'; 
+import { login, signup } from '../services/api';
 
 export function AuthForm({ view, onSuccess, onSwitch }) {
   const [u, setU] = useState('');
   const [p, setP] = useState('');
+  const [confirmP, setConfirmP] = useState(''); 
   const [err, setErr] = useState('');
 
   const isLogin = view === 'login';
@@ -12,27 +12,50 @@ export function AuthForm({ view, onSuccess, onSwitch }) {
   const submit = async (e) => {
     e.preventDefault();
     setErr('');
+    
+    
+    const username = u.trim();
+
+    
+    if (!isLogin) {
+      const usernameRegex = /^[a-zA-Z0-9]+$/;
+      if (username.length < 3 || username.length > 15) {
+        setErr('Username must be between 3 and 15 characters long.');
+        return;
+      }
+      if (!usernameRegex.test(username)) {
+        setErr('Username can only contain letters and numbers.');
+        return;
+      }
+      if (p.length < 6) {
+        setErr('Password must be at least 6 characters long.');
+        return;
+      }
+      if (p !== confirmP) {
+        setErr('Passwords do not match.');
+        return;
+      }
+    }
+    // ---------------------------
+
     try {
       let data;
       
-      // 2. USE the clean functions from api.js instead of writing raw fetch blocks
       if (isLogin) {
-        data = await login(u, p);
+        data = await login(username, p); 
       } else {
-        data = await signup(u, p);
+        data = await signup(username, p); 
       }
 
-      // 3. Handle errors if the server returned an error flag
       if (data && data.error) {
         throw new Error(data.error);
       }
 
-      // 4. Save token to localStorage if returned
       if (data && data.token) {
         localStorage.setItem('ops_token', data.token);
       }
 
-      onSuccess(u);
+      onSuccess(username);
     } catch (error) {
       setErr(error.message || 'Authentication failed');
     }
@@ -59,12 +82,24 @@ export function AuthForm({ view, onSuccess, onSwitch }) {
             required
             autoComplete={isLogin ? 'current-password' : 'new-password'}
           />
+          
+          {!isLogin && (
+            <input
+              type="password"
+              value={confirmP}
+              onChange={e => setConfirmP(e.target.value)}
+              placeholder="Confirm Password"
+              required
+              autoComplete="new-password"
+            />
+          )}
+
           {err && <p className="err">{err}</p>}
           <button type="submit">{isLogin ? 'Login' : 'Sign Up'}</button>
         </form>
         <p
           style={{ marginTop: '1.25rem', fontSize: '0.88rem', cursor: 'pointer', color: '#64748b' }}
-          onClick={onSwitch}
+          onClick={() => { setErr(''); setConfirmP(''); onSwitch(); }}
         >
           {isLogin ? 'Need an account? ' : 'Already have an account? '}
           <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>

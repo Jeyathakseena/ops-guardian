@@ -5,6 +5,26 @@ const jwtService = require('../services/jwtService');
 
 
 exports.signup = async (username, password) => {
+  if (!username || !password) {
+    throw new Error('Username and password are required');
+  }
+
+  
+  username = username.trim();
+
+  // --- BACKEND VALIDATION SECURITY GUARD ---
+  const usernameRegex = /^[a-zA-Z0-9]+$/;
+  if (username.length < 3 || username.length > 15) {
+    throw new Error('Username must be between 3 and 15 characters long');
+  }
+  if (!usernameRegex.test(username)) {
+    throw new Error('Username can only contain alphanumeric characters');
+  }
+  if (password.length < 6) {
+    throw new Error('Password must be at least 6 characters long');
+  }
+  // ----------------------------------------
+
   const exists = await userQuery.findOneByUsername(username);
   if (exists) throw new Error('Username already taken');
 
