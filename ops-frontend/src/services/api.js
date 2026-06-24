@@ -55,3 +55,8 @@ export const killProcess = async (pid, incidentId) => {
   });
   return res.json();
 };
+
+export const getCsvExportUrl = () => {
+  const token = localStorage.getItem('ops_token');
+  return `${import.meta.env.VITE_API_URL}/api/metrics/metrics/export?token=${token}`;
+};

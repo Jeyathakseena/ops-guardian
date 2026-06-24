@@ -1,28 +1,54 @@
+// ops-backend/routes/metrics.js
 const express = require('express');
 const router = express.Router();
 const metricsController = require('../controllers/metricsController');
 const broadcastService = require('../services/broadcastService');
+const { authenticate } = require('../middleware/authMiddleware');
 
 router.get('/health', (req, res) => {
-  const result = metricsController.getHealth();
-  res.json(result);
+  metricsController.getHealth()
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
 });
 
 router.get('/metrics', (req, res) => {
-  const result = metricsController.getMetrics();
-  res.json(result);
+  metricsController.getMetrics(req, res) //  Passing req and res fixes the timeline query & filters
+    .catch((err) => {
+      if (!res.headersSent) {
+        res.status(500).json({ error: err.message });
+      }
+    });
 });
 
-router.post('/metrics', async (req, res) => {
-  try {
-    const result = await metricsController.postMetrics(req.body);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+router.post('/metrics', (req, res) => {
+  metricsController.postMetrics(req.body)
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
 });
 
-// SSE endpoint
+
+router.get('/metrics/export', authenticate, (req, res) => {
+  
+  metricsController.exportMetricsToFile()
+    .then((filePath) => {
+      res.download(filePath); 
+    })
+    .catch((err) => {
+      res.status(500).json({ error: 'Failed to generte metrics history CSV: ' + err.message });
+    });
+    
+});
+
+
+// Server-Sent Events (SSE) streaming update pipeline
 router.get('/events', (req, res) => {
   res.set({
     'Content-Type': 'text/event-stream',
@@ -34,5 +60,6 @@ router.get('/events', (req, res) => {
   
   broadcastService.addClient(res);
 });
+
 
 module.exports = router;

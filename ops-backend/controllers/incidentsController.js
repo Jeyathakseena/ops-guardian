@@ -2,20 +2,22 @@
 const incidentQuery = require('../queries/incidentQuery');
 const broadcastService = require('../services/broadcastService');
 
-exports.postIncident = async (incident) => {
-  const existing = await incidentQuery.findOneActiveByPid(incident.targetPid);
-  if (existing) {
-    return { ok: true, message: 'Incident already active for this PID' };
-  }
+exports.postIncident = (incident) => {
+  return incidentQuery.findOneActiveByPid(incident.targetPid)
+    .then((existing) => {
+      if (existing) {
+        return { ok: true, message: 'Incident already active for this PID' };
+      }
 
-  await incidentQuery.create(incident);
-  const latest = await incidentQuery.findLatest(5);
-  broadcastService.broadcast({ type: 'incident', data: latest });
-
-  return { ok: true };
+      return incidentQuery.create(incident)
+        .then(() => incidentQuery.findLatest(5))
+        .then((latest) => {
+          broadcastService.broadcast({ type: 'incident', data: latest });
+          return { ok: true };
+        });
+    });
 };
 
-exports.getIncidents = async () => {
-  const docs = await incidentQuery.findLatest(5);
-  return docs;
+exports.getIncidents = () => {
+  return incidentQuery.findLatest(5);
 };

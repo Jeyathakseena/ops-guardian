@@ -1,5 +1,6 @@
 // ops-frontend/src/pages/DashboardPage.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router'; 
 import { MetricBar } from '../components/MetricBar';
 import { IncidentBanner } from '../components/IncidentBanner';
 import { getMetrics, getIncidents, killProcess } from '../services/api';
@@ -7,12 +8,12 @@ import { getMetrics, getIncidents, killProcess } from '../services/api';
 const API = `${import.meta.env.VITE_API_URL}`;
 
 export function DashboardPage({ onLogout }) {
+  const navigate = useNavigate(); 
   const [metrics, setMetrics] = useState({ cpu: 0, memory: 0, disk: 0 });
   const [incidents, setIncidents] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 1. Initial Load via clean API service layer
     getMetrics()
       .then(data => {
         if (data && !data.error) setMetrics(data);
@@ -29,11 +30,12 @@ export function DashboardPage({ onLogout }) {
       })
       .catch(err => setError(err.message));
 
-    // 2. Real-time updates via SSE
     const es = new EventSource(`${API}/api/metrics/events`);
     es.onmessage = ({ data }) => {
       const msg = JSON.parse(data);
-      if (msg.type === 'metrics') setMetrics(msg.data);
+      if (msg.type === 'metrics') {
+        setMetrics(msg.data);
+      }
       if (msg.type === 'incident') setIncidents(msg.data);
     };
 
@@ -54,13 +56,29 @@ export function DashboardPage({ onLogout }) {
           <h1>🛡️ Ops-Guardian</h1>
           <span className="live-badge">● LIVE</span>
         </div>
-        <button
-          className="kill-btn"
-          onClick={onLogout}
-          style={{ background: '#334155', color: '#e2e8f0' }}
-        >
-          Logout
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button 
+            className="kill-btn" 
+            style={{ background: '#22c55e', color: '#e2e8f0' }} 
+            onClick={() => navigate('/dashboard')} 
+          >
+            Live Vitals
+          </button>
+          <button 
+            className="kill-btn" 
+            style={{ background: '#1e293b', color: '#e2e8f0' }}
+            onClick={() => navigate('/analytics')} 
+          >
+            Metrics History
+          </button>
+          <button
+            className="kill-btn"
+            onClick={onLogout}
+            style={{ background: '#334155', color: '#e2e8f0' }}
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       {error && (
@@ -69,6 +87,7 @@ export function DashboardPage({ onLogout }) {
         </div>
       )}
 
+      {/* This page now exclusively renders the live panel content */}
       <section>
         <h2 className="section-title">System Metrics</h2>
         <div className="metrics-row">

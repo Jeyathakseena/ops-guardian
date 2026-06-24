@@ -1,4 +1,3 @@
-// ops-backend/controllers/authController.js
 const userQuery = require('../queries/userQuery');
 const authService = require('../services/authService');
 const jwtService = require('../services/jwtService');
@@ -12,7 +11,7 @@ exports.signup = async (username, password) => {
   
   username = username.trim();
 
-  // --- BACKEND VALIDATION SECURITY GUARD ---
+
   const usernameRegex = /^[a-zA-Z0-9]+$/;
   if (username.length < 3 || username.length > 15) {
     throw new Error('Username must be between 3 and 15 characters long');
@@ -23,7 +22,7 @@ exports.signup = async (username, password) => {
   if (password.length < 6) {
     throw new Error('Password must be at least 6 characters long');
   }
-  // ----------------------------------------
+ 
 
   const exists = await userQuery.findOneByUsername(username);
   if (exists) throw new Error('Username already taken');
