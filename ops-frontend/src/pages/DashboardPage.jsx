@@ -1,20 +1,17 @@
 // ops-frontend/src/pages/DashboardPage.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router'; 
 import { MetricBar } from '../components/MetricBar';
 import { IncidentBanner } from '../components/IncidentBanner';
-import { AnalyticsPage } from './AnalyticsPage';
 import { getMetrics, getIncidents, killProcess } from '../services/api';
 
 const API = `${import.meta.env.VITE_API_URL}`;
 
 export function DashboardPage({ onLogout }) {
+  const navigate = useNavigate(); 
   const [metrics, setMetrics] = useState({ cpu: 0, memory: 0, disk: 0 });
   const [incidents, setIncidents] = useState([]);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('live');
-  
-  // Maintain metric stream history at the top level so it never unmounts
-  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     getMetrics()
@@ -38,13 +35,6 @@ export function DashboardPage({ onLogout }) {
       const msg = JSON.parse(data);
       if (msg.type === 'metrics') {
         setMetrics(msg.data);
-        
-        // Push to history directly from the SSE event listener
-        setHistory(prev => {
-          const next = [...prev, { ...msg.data, time: new Date().toLocaleTimeString() }];
-          if (next.length > 30) next.shift();
-          return next;
-        });
       }
       if (msg.type === 'incident') setIncidents(msg.data);
     };
@@ -69,15 +59,15 @@ export function DashboardPage({ onLogout }) {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button 
             className="kill-btn" 
-            style={{ background: activeTab === 'live' ? '#22c55e' : '#1e293b', color: '#e2e8f0' }}
-            onClick={() => setActiveTab('live')}
+            style={{ background: '#22c55e', color: '#e2e8f0' }} 
+            onClick={() => navigate('/dashboard')} 
           >
             Live Vitals
           </button>
           <button 
             className="kill-btn" 
-            style={{ background: activeTab === 'analytics' ? '#22c55e' : '#1e293b', color: '#e2e8f0' }}
-            onClick={() => setActiveTab('analytics')}
+            style={{ background: '#1e293b', color: '#e2e8f0' }}
+            onClick={() => navigate('/analytics')} 
           >
             Metrics History
           </button>
@@ -97,31 +87,25 @@ export function DashboardPage({ onLogout }) {
         </div>
       )}
 
-      {/* Preserve layout views using hidden elements so state histories don't reset */}
-      <div style={{ display: activeTab === 'live' ? 'block' : 'none' }}>
-        <section>
-          <h2 className="section-title">System Metrics</h2>
-          <div className="metrics-row">
-            <MetricBar label="CPU Usage" value={metrics.cpu} />
-            <MetricBar label="Memory Usage" value={metrics.memory} />
-            <MetricBar label="Disk Usage" value={metrics.disk} />
-          </div>
-        </section>
+      {/* This page now exclusively renders the live panel content */}
+      <section>
+        <h2 className="section-title">System Metrics</h2>
+        <div className="metrics-row">
+          <MetricBar label="CPU Usage" value={metrics.cpu} />
+          <MetricBar label="Memory Usage" value={metrics.memory} />
+          <MetricBar label="Disk Usage" value={metrics.disk} />
+        </div>
+      </section>
 
-        <section>
-          <h2 className="section-title">Track Incidents</h2>
-          {incidents.length === 0
-            ? <p className="empty">All systems normal. No incidents detected.</p>
-            : incidents.map(inc => (
-                <IncidentBanner key={inc._id} inc={inc} onKill={handleKill} />
-              ))
-          }
-        </section>
-      </div>
-
-      <div style={{ display: activeTab === 'analytics' ? 'block' : 'none' }}>
-        <AnalyticsPage history={history} />
-      </div>
+      <section>
+        <h2 className="section-title">Track Incidents</h2>
+        {incidents.length === 0
+          ? <p className="empty">All systems normal. No incidents detected.</p>
+          : incidents.map(inc => (
+              <IncidentBanner key={inc._id} inc={inc} onKill={handleKill} />
+            ))
+        }
+      </section>
     </div>
   );
 }

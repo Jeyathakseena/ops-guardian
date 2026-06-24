@@ -6,6 +6,6 @@ const MetricSchema = new mongoose.Schema({
   disk: { type: Number, required: true }
 }, { timestamps: true });
 
-MetricSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
+MetricSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });
 
 module.exports = mongoose.model('Metric', MetricSchema);

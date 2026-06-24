@@ -16,12 +16,11 @@ router.get('/health', (req, res) => {
 });
 
 router.get('/metrics', (req, res) => {
-  metricsController.getMetrics()
-    .then((result) => {
-      res.json(result);
-    })
+  metricsController.getMetrics(req, res) //  Passing req and res fixes the timeline query & filters
     .catch((err) => {
-      res.status(500).json({ error: err.message });
+      if (!res.headersSent) {
+        res.status(500).json({ error: err.message });
+      }
     });
 });
 
