@@ -37,7 +37,7 @@ router.post('/metrics', (req, res) => {
 
 router.get('/metrics/export', authenticate, (req, res) => {
   
-  metricsController.exportMetricsToFile()
+  metricsController.exportMetricsToFile(req,res)
     .then((filePath) => {
       res.download(filePath); 
     })
