@@ -1,13 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux'; // 1. Import Redux Hooks
+import { updateMetrics, setHistory } from '../store/metricsSlice';  // 2. Import Action
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const API = `${import.meta.env.VITE_API_URL}`;
 
 export function AnalyticsPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const scrollContainerRef = useRef(null);
-  const [history, setHistory] = useState([]);
+  
+  // 3. Extract safe, persistent history directly from the Redux Store
+  const history = useSelector((state) => state.metrics.history);
+
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('1d'); 
   const [isMaximized, setIsMaximized] = useState(false);
@@ -28,9 +34,10 @@ export function AnalyticsPage() {
         headers: { 'Authorization': token ? `Bearer ${token}` : '' }
       });
       const data = await res.json();
+    
       if (Array.isArray(data)) {
-        setHistory(data.map(item => {
-          // Fallback resolution path to fix 'Invalid Date' bug
+      // Map all records from the database cleanly
+        const mappedHistory = data.map(item => {
           const dateSource = item.createdAt || item.timestamp;
           return {
             ...item,
@@ -38,7 +45,10 @@ export function AnalyticsPage() {
               month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
             })
           };
-        }));
+        });
+
+      // Dispatch the entire array to Redux at once!
+        dispatch(setHistory(mappedHistory));
       }
     } catch (err) {
       console.error("Failed to load records:", err);
@@ -51,26 +61,21 @@ export function AnalyticsPage() {
     fetchHistoricalData(timeRange);
   }, [timeRange]);
 
+  // 4. Live Stream listener channels its payload straight into Redux
   useEffect(() => {
     const es = new EventSource(`${API}/api/metrics/events`);
     es.onmessage = ({ data }) => {
       const msg = JSON.parse(data);
       if (msg.type === 'metrics') {
-        setHistory(prev => {
-          const newTick = {
-            ...msg.data,
-            createdAt: new Date().toISOString(),
-            timeLabel: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
-          };
-          const combined = [...prev, newTick];
-          if (timeRange === '1h' && combined.length > 50) combined.shift();
-          if (timeRange === '1d' && combined.length > 250) combined.shift();
-          return combined;
-        });
+        const newTick = {
+          ...msg.data,
+          timeLabel: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        };
+        dispatch(updateMetrics(newTick));
       }
     };
     return () => es.close();
-  }, [timeRange]);
+  }, [dispatch]);
 
   const handleExportCSV = () => {
     const token = localStorage.getItem('ops_token');

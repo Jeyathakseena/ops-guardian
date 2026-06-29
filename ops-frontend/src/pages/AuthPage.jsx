@@ -2,15 +2,11 @@
 import { useState } from 'react';
 import { AuthForm } from '../components/AuthForm';
 
-export function AuthPage({ onLogin }) {
+export function AuthPage() {
   const [view, setView] = useState('login');
-
-  const handleAuth = (username) => {
-    localStorage.setItem('ops_user', username);
-    onLogin(username);
-  };
-
   const toggleView = () => setView(view === 'login' ? 'signup' : 'login');
 
-  return <AuthForm view={view} onSuccess={handleAuth} onSwitch={toggleView} />;
+  // AuthForm will now handle context internally or we pass an empty shell 
+  // since AuthForm can use context too! Let's update AuthForm right below.
+  return <AuthForm view={view} onSwitch={toggleView} />;
 }
