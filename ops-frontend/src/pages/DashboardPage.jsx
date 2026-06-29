@@ -1,22 +1,32 @@
-// ops-frontend/src/pages/DashboardPage.jsx
-import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router'; 
+import { useDispatch, useSelector } from 'react-redux'; // 1. Import Redux Hooks
+import { updateMetrics } from '../store/metricsSlice';  // 2. Import Action
 import { MetricBar } from '../components/MetricBar';
 import { IncidentBanner } from '../components/IncidentBanner';
 import { getMetrics, getIncidents, killProcess } from '../services/api';
 
 const API = `${import.meta.env.VITE_API_URL}`;
 
-export function DashboardPage({ onLogout }) {
+export function DashboardPage() {
+  const { logoutUser } = useAuth();
   const navigate = useNavigate(); 
-  const [metrics, setMetrics] = useState({ cpu: 0, memory: 0, disk: 0 });
+  const dispatch = useDispatch();
+
+  // 3. Connect to Redux Global Live Metrics State
+  const metrics = useSelector((state) => state.metrics.live);
+
   const [incidents, setIncidents] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Initial fetch for historical context or current snapshot
     getMetrics()
       .then(data => {
-        if (data && !data.error) setMetrics(data);
+        if (data && !data.error) {
+          dispatch(updateMetrics(data)); // Push snapshot straight to Redux
+        }
       })
       .catch(() => {});
 
@@ -30,17 +40,22 @@ export function DashboardPage({ onLogout }) {
       })
       .catch(err => setError(err.message));
 
+    // Establish live system data stream
     const es = new EventSource(`${API}/api/metrics/events`);
+    
     es.onmessage = ({ data }) => {
       const msg = JSON.parse(data);
       if (msg.type === 'metrics') {
-        setMetrics(msg.data);
+        // 4. Dispatch live metrics straight to the Redux Store
+        dispatch(updateMetrics(msg.data));
       }
-      if (msg.type === 'incident') setIncidents(msg.data);
+      if (msg.type === 'incident') {
+        setIncidents(msg.data);
+      }
     };
 
     return () => es.close();
-  }, []);
+  }, [dispatch]);
 
   const handleKill = async (incidentId, pid) => {
     const data = await killProcess(pid, incidentId);
@@ -73,7 +88,7 @@ export function DashboardPage({ onLogout }) {
           </button>
           <button
             className="kill-btn"
-            onClick={onLogout}
+            onClick={logoutUser}
             style={{ background: '#334155', color: '#e2e8f0' }}
           >
             Logout
@@ -87,7 +102,6 @@ export function DashboardPage({ onLogout }) {
         </div>
       )}
 
-      {/* This page now exclusively renders the live panel content */}
       <section>
         <h2 className="section-title">System Metrics</h2>
         <div className="metrics-row">
